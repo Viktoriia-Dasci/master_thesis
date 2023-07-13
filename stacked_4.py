@@ -1,29 +1,19 @@
 import numpy as np
-import nibabel as nib
-import glob
-import os
-import random
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torchvision.transforms as transforms
+import optuna
 import torchvision.datasets as datasets
 from torch.utils.data import DataLoader
 from torchvision import datasets, models, transforms
-from torchvision.models import ResNet50_Weights
 from efficientnet_pytorch import EfficientNet
 from collections import Counter
 from sklearn.utils.class_weight import compute_class_weight
-import torch
-import torch.nn as nn
-import torch.optim as optim
-import torchvision.transforms as transforms
 from torch.utils.data import DataLoader, TensorDataset
 from torch.nn import functional as F
-from torch.utils.data import TensorDataset
-from torchvision import transforms
 from torchvision import transforms
 from torchvision.transforms.functional import resize, to_tensor
+from sklearn.metrics import f1_score
 
 #custom functions
 from Model_functions import *
@@ -52,8 +42,9 @@ print(class_weights)
 
 class_weights_np = np.array(class_weights, dtype=np.float32)
 class_weights_tensor = torch.from_numpy(class_weights_np)
+class_weights_tensor = torch.from_numpy(class_weights_np)
 if torch.cuda.is_available():
-    class_weights_tensor = class_weights_tensor
+    class_weights_tensor = class_weights_tensor.to(device)
 
 # Convert labels to categorical tensor
 y_train_tensor = torch.tensor(y_train, dtype=torch.long)
@@ -130,14 +121,6 @@ class FocalLoss(nn.Module):
         pt = torch.exp(-ce_loss)
         focal_loss = (self.alpha * (1-pt)**self.gamma * ce_loss).mean()
         return focal_loss
-
-import numpy as np
-from sklearn.metrics import f1_score
-
-import torch
-import torch.nn as nn
-import torch.optim as optim
-import optuna
 
 
 def train_and_evaluate(param, model, trial):
