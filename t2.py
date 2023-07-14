@@ -353,3 +353,96 @@ def overlay_gradCAM(img, cam3):
     new_img = 0.6 * cam3 + 0.2 * img
 
     return (new_img * 255.0 / new_img.max()).astype("uint8")
+
+
+# Setting image, mask, and patient numbers
+img_num = 100
+msk_num = 100
+pat_num = 17
+
+# Setting the image class
+img_class = 'HGG'
+
+# Loading image data from a numpy file
+img_arr = np.load("/content/drive/MyDrive/T2_new_MRI_slices/test/" + img_class + '_t2' + "/"+str(img_num)+ '_' + str(pat_num) + ".npy")
+
+# Setting the mask class
+img_msk_class = 'HGG'
+
+# Loading mask data from a numpy file
+img_msk = np.load("/content/drive/MyDrive/T2_new_Msk_slices/test/" + img_msk_class + "_masks/"+str(msk_num)+ '_' + str(pat_num)+".npy")
+
+# Converting the grayscale image to RGB and cropping to desired size
+img_rgb = cv2.cvtColor(img_arr.astype('float32'), cv2.COLOR_GRAY2RGB)
+img_rgb = tf.image.crop_to_bounding_box(img_rgb, 8, 8, 224, 224)
+img_rgb = img_rgb.numpy()
+
+# Clipping and casting the mask values
+msk_rgb = np.clip(img_msk, 0, 255).astype('float32')
+
+# Displaying and saving the mask image
+msk=plt.imshow(msk_rgb)
+plt.axis("off")
+save_results_to = '/content/' + str(msk_num)
+plt.savefig(save_results_to, bbox_inches='tight', pad_inches=0)
+msk=cv2.imread('/content/' + str(msk_num) + '.png')
+msk_rgb=cv2.resize(msk, (224, 224))
+
+# Printing the maximum pixel value of the mask
+print(msk_rgb.max())
+
+# Setting the target size for the GradCAM computations
+target_size = (224,224)
+
+# Computing the GradCAM heatmaps
+gradCAM = GradCAM(model=pretrained_model)
+cam3 = gradCAM.compute_heatmap(image=np.expand_dims(img_rgb,axis=0),classIdx=0,upsample_size=target_size)
+
+# Normalizing and scaling the image data
+img_rgb_plot = cv2.normalize(img_rgb, None, alpha = 0, beta = 1, norm_type = cv2.NORM_MINMAX, dtype = cv2.CV_32F)
+img_rgb_plot = img_rgb_plot *255
+
+# Overlaying the GradCAM heatmap onto the image
+heatmap = overlay_gradCAM(img_rgb_plot,cam3)
+heatmap = cv2.cvtColor(heatmap, cv2.COLOR_BGR2RGB)
+
+# Computing the Guided Backpropagation
+guidedBP = GuidedBackprop(model=pretrained_model)
+gb_cam = guidedBP.guided_backprop(np.expand_dims(img_rgb,axis=0),target_size)
+guided_gradcam = deprocess_image(gb_cam*cam3)
+
+# Overlaying the GradCAM heatmap onto the mask
+heatmap_mask = overlay_gradCAM(msk_rgb,cam3)
+
+# Predicting the class of the test image
+test_img_input = np.expand_dims(np.float32(img_rgb), axis=0)
+test_prediction = pretrained_model.predict(test_img_input)
+test_prediction_argmax=np.argmax(test_prediction, axis=1)
+
+# Decoding the prediction to a label name
+labels = ['HGG', 'LGG']
+name = labels[int(test_prediction_argmax)]
+
+# Printing the predicted and actual labels
+print('predicted label:' + ' ' + name)
+print('actual label:' + ' ' + img_class)
+
+# Displaying the original image, mask, GradCAM, GradCAM Mask, and Guided GradCAM
+fig, ax = plt.subplots(1,5,figsize=(16,32))
+ax[0].imshow(rgb2gray(img_rgb_plot))
+ax[0].axis("off")
+ax[0].set_title(img_class + ' ' +  modality + ' ' + "Original Image ")
+ax[1].imshow(rgb2gray(msk_rgb))
+ax[1].axis("off")
+ax[1].set_title(img_class + " Mask")
+ax[2].imshow(rgb2gray(heatmap))
+ax[2].axis("off")
+ax[2].set_title("GradCAM")
+ax[3].imshow(rgb2gray(heatmap_mask))
+ax[3].axis("off")
+ax[3].set_title("GradCAM Mask")
+ax[4].imshow(guided_gradcam)
+ax[4].axis("off")
+ax[4].set_title("Guided GradCAM")
+plt.show()
+
