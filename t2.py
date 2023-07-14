@@ -179,19 +179,22 @@ for name, model in best_models.items():
 
 
 #Explainability analysis
-pretrained_model = load_model('/content/drive/MyDrive/final_models/densenet_t2.h5', custom_objects={'f1_score': f1_score, 'focal_loss': focal_loss})
 
-modality = 'T2'
+drive = '/content/drive/MyDrive'
+#change for other modalities
+modality = 't2'
 
-pred_res = pretrained_model.predict(X_test)
-pred_ready_res = np.argmax(pred_res,axis=1)
-y_test_new_res = np.argmax(y_test,axis=1)
+#change when analysing exolainability methods for effnet and inception
+model = 'densenet'
+
+pretrained_model = load_model(f'{drive}/final_models/{model}_{modality}.h5', custom_objects={'f1_score': f1_score, 'focal_loss': focal_loss})
 
 # Load the models
-densenet = load_model('/content/drive/MyDrive/final_models/densenet_t2.h5', custom_objects={'f1_score': f1_score, 'focal_loss': focal_loss})
-effnet = load_model('/content/drive/MyDrive/final_models/effnet_t2.h5', custom_objects={'f1_score': f1_score, 'focal_loss': focal_loss})
-inception = load_model('/content/drive/MyDrive/final_models/inception_t2.h5', custom_objects={'f1_score': f1_score, 'focal_loss': focal_loss})
+densenet = load_model(f'{drive}/final_models/densenet_{modality}.h5', custom_objects={'f1_score': f1_score, 'focal_loss': focal_loss})
+effnet = load_model(f'{drive}/final_models/effnet_{modality}.h5', custom_objects={'f1_score': f1_score, 'focal_loss': focal_loss})
+inception = load_model(f'{drive}/final_models/inception_{modality}.h5', custom_objects={'f1_score': f1_score, 'focal_loss': focal_loss})
 
+#Plotting ROC curves
 models = {'DenseNet-121': densenet, 'EfficientNetB0': effnet, 'Inception-V3': inception}
 
 plt.figure(figsize=[5,5])
@@ -214,6 +217,10 @@ plt.ylabel('True Positive Rate')
 plt.title('Receiver Operating Characteristic')
 plt.legend(loc="lower right")
 plt.show()
+
+pred_res = pretrained_model.predict(X_test)
+pred_ready_res = np.argmax(pred_res,axis=1)
+y_test_new_res = np.argmax(y_test,axis=1)
 
 print(classification_report(y_test_new_res, pred_ready_res, target_names=['HGG', 'LGG']))
 
