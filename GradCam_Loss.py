@@ -272,7 +272,7 @@ class MyCustomEfficientNetB0(nn.Module):
             self.fc2 = None
             self.fc_final = nn.Linear(dense_0_units, 2)
 
-    def forward(self, input_imgs, targets=None, masks=None, batch_size=None, xe_criterion=nn.CrossEntropyLoss(weight=class_weights_tensor), dropout=None):
+    def forward(self, input_imgs, targets=None, masks=None, batch_size=None, xe_criterion=nn.CrossEntropyLoss(weight=class_weights_tensor.to(device)), dropout=None):
         images_feats = self.features(input_imgs)
         output = self.last_pooling_operation(images_feats)
         output = dropout(output)
