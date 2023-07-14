@@ -16,6 +16,7 @@ import saliency
 
 
 #Grad-CAM & Guided Grad-CAM
+# Reference: https://github.com/eclique/keras-gradcam with adaption to tensorflow 2.0
 @tf.custom_gradient
 def guidedRelu(x):
     def grad(dy):
@@ -131,6 +132,7 @@ def colorbar(mappable):
     return cbar
 
 #XRAI method
+#Reference: adapted from 'https://github.com/PAIR-code/saliency'
 
 def ShowImage(im, title='', ax=None):
     if ax is None:
