@@ -517,8 +517,6 @@ dataloaders = load_data(batch_size=16)
 images, labels, masks = next(iter(dataloaders['Train']))
 # create grid of images
 img_grid = torchvision.utils.make_grid(images)
-#msk_grid = torchvision.utils.make_grid(masks)
-# get and show the unnormalized images
 img_grid = imshow(img_grid)
 # create grid of masks
 msk_grid = torchvision.utils.make_grid(masks)
