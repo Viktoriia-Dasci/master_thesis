@@ -43,12 +43,12 @@ base_dir = '/home/viktoriia.trokhova/Split_data/'
 modality = 't2'
 
 #load data
-HGG_list_train = load_from_dir(f'/content/drive/MyDrive/Split_data/{modality}_mri_slices/train/HGG_{modality}')
-LGG_list_train = load_from_dir(f'/content/drive/MyDrive/Split_data/{modality}_mri_slices/train/LGG_{modality}')
-HGG_list_val = load_from_dir(f'/content/drive/MyDrive/Split_data/{modality}_mri_slices/val/HGG_{modality}')
-LGG_list_val = load_from_dir(f'/content/drive/MyDrive/Split_data/{modality}_mri_slices/val/LGG_{modality}')
-HGG_list_test = load_from_dir(f'/content/drive/MyDrive/Split_data/{modality}_mri_slices/test/HGG_{modality}')
-LGG_list_test = load_from_dir(f'/content/drive/MyDrive/Split_data/{modality}_mri_slices/test/LGG_{modality}')
+HGG_list_train = load_from_dir(f'{base_dir}/{modality}_mri_slices/train/HGG_{modality}')
+LGG_list_train = load_from_dir(f'{base_dir}/{modality}_mri_slices/train/LGG_{modality}')
+HGG_list_val = load_from_dir(f'{base_dir}/{modality}_mri_slices/val/HGG_{modality}')
+LGG_list_val = load_from_dir(f'{base_dir}/{modality}_mri_slices/val/LGG_{modality}')
+HGG_list_test = load_from_dir(f'{base_dir}/{modality}_mri_slices/test/HGG_{modality}')
+LGG_list_test = load_from_dir(f'{base_dir}/{modality}_mri_slices/test/LGG_{modality}')
 
 
 #preprocessing data
@@ -252,13 +252,13 @@ pat_num = 17
 img_class = 'HGG'
 
 # Loading image data from a numpy file
-img_arr = np.load("/content/drive/MyDrive/T2_new_MRI_slices/test/" + img_class + '_t2' + "/"+str(img_num)+ '_' + str(pat_num) + ".npy")
+img_arr = np.load(f"{drive}/{modality}_mri_slices/test/{img_class}_{modality}/{img_num}_{pat_num}.npy")
 
 # Setting the mask class
 img_msk_class = 'HGG'
 
 # Loading mask data from a numpy file
-img_msk = np.load("/content/drive/MyDrive/T2_new_Msk_slices/test/" + img_msk_class + "_masks/"+str(msk_num)+ '_' + str(pat_num)+".npy")
+img_msk = np.load(f"{drive}/{modality}_mri_slices/test/{img_msk_class}_masks/{msk_num}_{pat_num}.npy")
 
 # Converting the grayscale image to RGB and cropping to desired size
 img_rgb = cv2.cvtColor(img_arr.astype('float32'), cv2.COLOR_GRAY2RGB)
