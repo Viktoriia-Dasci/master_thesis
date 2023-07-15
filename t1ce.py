@@ -19,8 +19,26 @@ from tensorflow_addons import metrics
 import keras_tuner
 from kerastuner.tuners import Hyperband
 from kerastuner.engine.hyperparameters import HyperParameters
+import matplotlib.pyplot as plt
+import pandas as pd
+import re
+from sklearn.metrics import roc_curve, auc
+import cv2
+from lime import lime_image
+from skimage.segmentation import mark_boundaries
+import PIL.Image
+from matplotlib import pylab as P
+import saliency.core as saliency
+from skimage import img_as_float
+import matplotlib.pyplot as plt
+import pandas as pd
+import re
+
+
 #custom functions
 from Model_functions import *
+from explainabilty_functions import *
+
 
 home_dir = '/home/viktoriia.trokhova/'
 
@@ -29,12 +47,13 @@ base_dir = '/home/viktoriia.trokhova/Split_data/'
 modality = 't1ce'
 
 #load data
-HGG_list_train = load_from_dir(f'/content/drive/MyDrive/Split_data/{modality}_mri_slices/train/HGG_{modality}')
-LGG_list_train = load_from_dir(f'/content/drive/MyDrive/Split_data/{modality}_mri_slices/train/LGG_{modality}')
-HGG_list_val = load_from_dir(f'/content/drive/MyDrive/Split_data/{modality}_mri_slices/val/HGG_{modality}')
-LGG_list_val = load_from_dir(f'/content/drive/MyDrive/Split_data/{modality}_mri_slices/val/LGG_{modality}')
-HGG_list_test = load_from_dir(f'/content/drive/MyDrive/Split_data/{modality}_mri_slices/test/HGG_{modality}')
-LGG_list_test = load_from_dir(f'/content/drive/MyDrive/Split_data/{modality}_mri_slices/test/LGG_{modality}')
+HGG_list_train = load_from_dir(f'{base_dir}/{modality}_mri_slices/train/HGG_{modality}')
+LGG_list_train = load_from_dir(f'{base_dir}/{modality}_mri_slices/train/LGG_{modality}')
+HGG_list_val = load_from_dir(f'{base_dir}/{modality}_mri_slices/val/HGG_{modality}')
+LGG_list_val = load_from_dir(f'{base_dir}/{modality}_mri_slices/val/LGG_{modality}')
+HGG_list_test = load_from_dir(f'{base_dir}/{modality}_mri_slices/test/HGG_{modality}')
+LGG_list_test = load_from_dir(f'{base_dir}/{modality}_mri_slices/test/LGG_{modality}')
+
 
 
 #preprocessing data
@@ -235,13 +254,13 @@ pat_num = 17
 img_class = 'HGG'
 
 # Loading image data from a numpy file
-img_arr = np.load("/content/drive/MyDrive/T2_new_MRI_slices/test/" + img_class + '_t2' + "/"+str(img_num)+ '_' + str(pat_num) + ".npy")
+img_arr = np.load(f"{drive}/{modality}_new_MRI_slices/test/{img_class}_{modality}/{img_num}_{pat_num}.npy")
 
 # Setting the mask class
 img_msk_class = 'HGG'
 
 # Loading mask data from a numpy file
-img_msk = np.load("/content/drive/MyDrive/T2_new_Msk_slices/test/" + img_msk_class + "_masks/"+str(msk_num)+ '_' + str(pat_num)+".npy")
+img_msk = np.load(f"{drive}/{modality}_new_Msk_slices/test/{img_msk_class}_masks/{msk_num}_{pat_num}.npy")
 
 # Converting the grayscale image to RGB and cropping to desired size
 img_rgb = cv2.cvtColor(img_arr.astype('float32'), cv2.COLOR_GRAY2RGB)
@@ -417,3 +436,24 @@ ShowImage(rgb2gray(im_mask), title='Top 7% Superpixels', ax=P.subplot(ROWS, COLS
 # Show XRAI attributions heatmap
 ShowHeatMap(xrai_attributions, title='XRAI Heatmap', ax=P.subplot(ROWS, COLS, 4))
 
+#creating lists to store dice and iou coefficeints
+rows_list = []
+ggcam_list = []
+xrai_list = []
+lime_list = []
+
+df_grad_LGG = gradcam_coef('LGG', drive, modality, pretrained_model, stacked=False)
+df_grad_HGG = gradcam_coef('HGG', drive, modality, pretrained_model, stacked=False)
+df_grad_HGG.to_csv(f"{home_dir}/explain_datasets/grad_coef_{model}_{modality}.csv", index=False)
+
+df_ggrad_LGG = guided_grad_coef('LGG', drive, modality, pretrained_model, stacked=False)
+df_ggrad_HGG = guided_grad_coef('HGG', drive, modality, pretrained_model, stacked=False)
+df_ggrad_HGG.to_csv(f"{home_dir}/explain_datasets/guidgrad_coef_{model}_{modality}.csv", index=False)
+
+df_xrai_LGG = xrai_coef('LGG', drive, modality, pretrained_model, stacked=False)
+df_xrai_HGG = xrai_coef('HGG', drive, modality, pretrained_model, stacked=False)
+df_xrai_HGG.to_csv(f"{home_dir}/explain_datasets/xrai_coef_{model}_{modality}.csv", index=False)
+
+df_lime_LGG = lime_coef('LGG', drive, modality, pretrained_model, stacked=False)
+df_lime_HGG = lime_coef('HGG', drive, modality, pretrained_model, stacked=False)
+df_lime_HGG.to_csv(f"{home_dir}/explain_datasets/lime_coef_{model}_{modality}.csv", index=False)
