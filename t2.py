@@ -27,6 +27,10 @@ import PIL.Image
 from matplotlib import pylab as P
 import saliency.core as saliency
 from skimage import img_as_float
+import matplotlib.pyplot as plt
+import pandas as pd
+import re
+
 
 #custom functions
 from Model_functions import *
@@ -429,4 +433,26 @@ ShowImage(rgb2gray(im_mask), title='Top 7% Superpixels', ax=P.subplot(ROWS, COLS
 
 # Show XRAI attributions heatmap
 ShowHeatMap(xrai_attributions, title='XRAI Heatmap', ax=P.subplot(ROWS, COLS, 4))
+
+#creating lists to store dice and iou coefficeints
+rows_list = []
+ggcam_list = []
+xrai_list = []
+lime_list = []
+
+df_grad_LGG = gradcam_coef('LGG', drive, modality, pretrained_model, stacked=False)
+df_grad_HGG = gradcam_coef('HGG', drive, modality, pretrained_model, stacked=False)
+df_grad_HGG.to_csv(f"{home_dir}/explain_datasets/grad_coef_{model}_{modality}.csv", index=False)
+
+df_ggrad_LGG = guided_grad_coef('LGG', drive, modality, pretrained_model, stacked=False)
+df_ggrad_HGG = guided_grad_coef('HGG', drive, modality, pretrained_model, stacked=False)
+df_ggrad_HGG.to_csv(f"{home_dir}/explain_datasets/guidgrad_coef_{model}_{modality}.csv", index=False)
+
+df_xrai_LGG = xrai_coef('LGG', drive, modality, pretrained_model, stacked=False)
+df_xrai_HGG = xrai_coef('HGG', drive, modality, pretrained_model, stacked=False)
+df_xrai_HGG.to_csv(f"{home_dir}/explain_datasets/xrai_coef_{model}_{modality}.csv", index=False)
+
+df_lime_LGG = lime_coef('LGG', drive, modality, pretrained_model, stacked=False)
+df_lime_HGG = lime_coef('HGG', drive, modality, pretrained_model, stacked=False)
+df_lime_HGG.to_csv(f"{home_dir}/explain_datasets/lime_coef_{model}_{modality}.csv", index=False)
 
